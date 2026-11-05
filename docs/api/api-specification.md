@@ -90,9 +90,50 @@
 - **Response `200 OK`:** New `accessToken` and updated `expiresIn`.
 
 ### 2.4 Current User Profile
-- **Method & Path:** `GET /api/v1/auth/me`
+- **Method & Path:** `GET /api/v1/auth/me` (alias: `GET /api/v1/users/me`)
 - **Auth Required:** Yes (`ROLE_USER`)
 - **Response `200 OK`:** Profile details and account preferences.
+```json
+{
+  "success": true,
+  "message": "User profile retrieved successfully",
+  "data": {
+    "id": "d7a4b8c2-3e2a-4a6f-b258-0123456789ab",
+    "fullName": "Purushottam Sharma",
+    "email": "purush@example.com",
+    "currency": "USD",
+    "role": "ROLE_USER",
+    "isActive": true,
+    "createdAt": "2026-11-05T09:30:00Z",
+    "updatedAt": "2026-11-05T09:30:00Z"
+  },
+  "timestamp": "2026-11-05T09:35:00Z"
+}
+```
+
+### 2.5 Update User Profile
+- **Method & Path:** `PUT /api/v1/users/me`
+- **Auth Required:** Yes (`ROLE_USER`)
+- **Request Body:**
+```json
+{
+  "fullName": "Purushottam Sharma",
+  "currency": "EUR"
+}
+```
+- **Response `200 OK`:** Updated user profile.
+
+### 2.6 Change Password
+- **Method & Path:** `PUT /api/v1/users/me/password`
+- **Auth Required:** Yes (`ROLE_USER`)
+- **Request Body:**
+```json
+{
+  "currentPassword": "Password123#",
+  "newPassword": "NewSecurePassword456#"
+}
+```
+- **Response `200 OK`:** Success message.
 
 ---
 
