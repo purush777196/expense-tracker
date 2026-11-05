@@ -1,0 +1,39 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+
+  datasource:
+    url: jdbc:h2:mem:expensetracker_test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    clean-disabled: false
+
+app:
+  jwt:
+    # 256-bit test secret
+    secret: dGVzdC1zZWN1cmUtZXhwZW5zZS10cmFja2VyLWp3dC1zZWNyZXQta2V5LWZvci10ZXN0aW5nLXB1cnBvc2Vz
+    expiration-ms: 3600000 # 1 hour
+    refresh-expiration-ms: 86400000 # 24 hours
+  cors:
+    allowed-origins: http://localhost:5173
+
+logging:
+  level:
+    com.expensetracker: INFO
+    org.flywaydb: INFO
