@@ -84,6 +84,8 @@ replay_pid*
 # ------------------------------------------------------------------------------
 # Node, React & Vite (Frontend)
 # ------------------------------------------------------------------------------
+.vite/
+frontend/.vite/
 frontend/node_modules/
 node_modules/
 frontend/dist/
