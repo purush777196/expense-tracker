@@ -28,26 +28,27 @@ frontend/
 │   ├── components/         # Reusable UI components
 │   │   ├── common/         # Button, Input, Select, Card, StatCard, Badge, Modal, EmptyState, Skeleton
 │   │   ├── dashboard/      # MonthlySpendingChart, CategoryBreakdownChart, RecentTransactionsTable
-│   │   └── layout/         # AppLayout, Sidebar, Header, MobileNav
+│   │   ├── layout/         # AppLayout, Sidebar, Header, MobileNav
+│   │   └── transactions/   # AddEditTransactionModal, DeleteConfirmModal
 │   ├── context/            # AuthContext (JWT session state), ToastContext
 │   ├── hooks/              # useAuth, useToast
 │   ├── pages/
 │   │   ├── auth/           # LoginPage, RegisterPage
 │   │   ├── budgets/        # BudgetsPage (Phase 4 placeholder)
 │   │   ├── common/         # NotFoundPage (404)
-│   │   ├── dashboard/      # DashboardPage (KPI cards, charts, ledger)
+│   │   ├── dashboard/      # DashboardPage (Live KPI metrics, charts, quick transaction entry)
 │   │   ├── goals/          # GoalsPage (placeholder)
 │   │   ├── insights/       # InsightsPage (Phase 5 placeholder)
 │   │   ├── profile/        # ProfilePage (User details, change password)
 │   │   ├── reports/        # ReportsPage (placeholder)
-│   │   └── transactions/   # TransactionsPage (Phase 3 placeholder)
+│   │   └── transactions/   # TransactionsPage (Full CRUD ledger, filter toolbar, pagination)
 │   ├── routes/             # AppRoutes, ProtectedRoute, PublicRoute
-│   ├── services/           # api.js (Axios instance), authService.js
+│   ├── services/           # api.js, authService.js, categoryService.js, transactionService.js, dashboardService.js
 │   ├── styles/             # Global styles
 │   ├── test/               # Vitest test suite and mocks
-│   │   ├── components/     # Button, Input, StatCard, Badge tests
+│   │   ├── components/     # Button, Input, StatCard, Badge, AddEditTransactionModal tests
 │   │   ├── context/        # AuthContext tests
-│   │   ├── pages/          # LoginPage, RegisterPage tests
+│   │   ├── pages/          # LoginPage, RegisterPage, DashboardPage, TransactionsPage tests
 │   │   ├── routes/         # ProtectedRoute tests
 │   │   ├── setup.js        # Vitest setup & mocks
 │   │   └── utils/          # Formatter and validator unit tests
@@ -66,7 +67,7 @@ frontend/
 
 ---
 
-## Key Features Implemented (Phase 2)
+## Key Features Implemented (Phase 2 & Phase 3)
 1. **Design System & Layout:**
    - Cohesive slate & primary indigo financial palette.
    - Fully responsive application layout with collapsible desktop sidebar, top header, and mobile navigation drawer.
@@ -78,15 +79,22 @@ frontend/
    - Automatic 401 interceptor that queues pending requests and transparently refreshes expired access tokens.
    - Form validation with real-time password strength meter (8+ chars, uppercase, lowercase, digit, special character).
 
-3. **Dashboard Foundation:**
-   - KPI metrics: Total Income, Total Expenses, Net Cashflow, Savings Rate with trend indicators.
-   - Spending Trend area chart (Income vs Expenses) powered by Recharts.
-   - Category Breakdown donut chart with interactive hover tooltips.
-   - Recent Transactions ledger table with category badges and positive/negative cashflow indicators.
+3. **Transaction & Category Management (Phase 3):**
+   - Interactive transaction ledger page (`TransactionsPage`) with dynamic server-side filtering (type, category, date range, search query).
+   - Paginated table with custom sort headers (`transactionDate`, `amount`, `createdAt`).
+   - Modal transaction creator/editor (`AddEditTransactionModal`) that dynamically enforces category-to-type compatibility.
+   - Deletion confirmation dialog (`DeleteConfirmModal`) with safe server state reconciliation.
 
-4. **Testing & QA Automation:**
-   - 100% test pass rate across 11 test suites and 50 unit/integration tests using Vitest and React Testing Library.
-   - ESLint check configured with zero warnings and zero errors.
+4. **Live Dashboard Analytics Integration (Phase 3):**
+   - KPI metrics connected to `/api/v1/dashboard/summary`: Income, Expenses, Net Savings, and Savings Rate with MoM growth comparison.
+   - Monthly spending trend area chart (Income vs Expenses) connected to `/api/v1/dashboard/spending-trend`.
+   - Category breakdown donut chart connected to `/api/v1/dashboard/category-breakdown`.
+   - Recent transactions table connected to `/api/v1/dashboard/recent-transactions`.
+   - Quick-add modal trigger directly from empty dashboard states or header actions.
+
+5. **Testing & QA Automation:**
+   - 100% test pass rate across 14 test suites and 59 unit/integration tests using Vitest and React Testing Library.
+   - ESLint flat configuration with zero warnings and zero errors.
    - Code-split production build with vendor chunking under 500 kB.
 
 ---

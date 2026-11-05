@@ -141,109 +141,210 @@
 
 ### 3.1 List / Search Transactions (Paginated)
 - **Method & Path:** `GET /api/v1/transactions`
-- **Auth Required:** Yes
+- **Auth Required:** Yes (`ROLE_USER`)
 - **Query Parameters:**
   - `page`: Integer (default 0)
   - `size`: Integer (default 20, max 100)
-  - `startDate`: ISO Date (`YYYY-MM-DD`)
-  - `endDate`: ISO Date (`YYYY-MM-DD`)
+  - `startDate`: ISO-8601 Instant (`2026-11-01T00:00:00Z`)
+  - `endDate`: ISO-8601 Instant (`2026-11-30T23:59:59Z`)
   - `type`: Enum (`INCOME` | `EXPENSE`)
   - `categoryId`: UUID
   - `minAmount`: Decimal
   - `maxAmount`: Decimal
-  - `query`: String (search merchant & description)
-  - `sortBy`: String (`transactionDate`, `amount`, `createdAt`)
-  - `sortDirection`: String (`ASC`, `DESC`)
+  - `query`: String (case-insensitive search in description and notes)
+  - `sortBy`: String (`transactionDate`, `amount`, `createdAt` - default `transactionDate`)
+  - `sortDirection`: String (`ASC`, `DESC` - default `DESC`)
 - **Response `200 OK`:**
 ```json
 {
   "content": [
     {
       "id": "c1f8d4e2-9b2a-4a6f-b258-112233445566",
-      "amount": 84.50,
-      "type": "EXPENSE",
-      "transactionDate": "2026-11-04T18:22:00Z",
-      "description": "Weekly grocery supplies",
-      "merchant": "Whole Foods Market",
-      "paymentMethod": "CARD",
+      "userId": "d7a4b8c2-3e2a-4a6f-b258-0123456789ab",
       "category": {
         "id": "e3b0c442-98fc-1c14-9afbf4c8996fb924",
         "name": "Groceries",
+        "type": "EXPENSE",
         "colorHex": "#10B981",
-        "iconName": "ShoppingCart"
+        "iconName": "ShoppingCart",
+        "isSystemDefault": true,
+        "userId": null
       },
-      "isRecurring": false,
-      "isAnomaly": false,
-      "aiCategorized": true
+      "type": "EXPENSE",
+      "amount": 84.50,
+      "description": "Weekly grocery supplies",
+      "transactionDate": "2026-11-04T18:22:00Z",
+      "paymentMethod": "CARD",
+      "notes": "Purchased organic produce",
+      "createdAt": "2026-11-04T18:22:15Z",
+      "updatedAt": "2026-11-04T18:22:15Z"
     }
   ],
   "pageNumber": 0,
   "pageSize": 20,
-  "totalElements": 142,
-  "totalPages": 8,
-  "isLast": false
+  "totalElements": 1,
+  "totalPages": 1,
+  "isFirst": true,
+  "isLast": true,
+  "hasNext": false,
+  "hasPrevious": false
 }
 ```
 
 ### 3.2 Create Transaction
 - **Method & Path:** `POST /api/v1/transactions`
-- **Auth Required:** Yes
+- **Auth Required:** Yes (`ROLE_USER`)
 - **Request Body:**
 ```json
 {
+  "categoryId": "e3b0c442-98fc-1c14-9afbf4c8996fb924",
   "amount": 84.50,
   "type": "EXPENSE",
-  "categoryId": "e3b0c442-98fc-1c14-9afbf4c8996fb924",
   "transactionDate": "2026-11-04T18:22:00Z",
   "description": "Weekly grocery supplies",
-  "merchant": "Whole Foods Market",
   "paymentMethod": "CARD",
-  "notes": "Purchased organic produce",
-  "aiCategorized": true
+  "notes": "Purchased organic produce"
 }
 ```
-- **Response `201 Created`:** Created transaction entity.
+- **Response `201 Created`:** Wrapped `ApiResponse<TransactionResponse>`.
 
-### 3.3 Update & Delete Transaction
-- **Method & Path:** `PUT /api/v1/transactions/{id}` -> Updates transaction.
-- **Method & Path:** `DELETE /api/v1/transactions/{id}` -> Deletes transaction (`204 No Content`).
+### 3.3 Get Transaction by ID
+- **Method & Path:** `GET /api/v1/transactions/{id}`
+- **Auth Required:** Yes (`ROLE_USER`)
+- **Response `200 OK`:** Wrapped `ApiResponse<TransactionResponse>`.
+
+### 3.4 Update Transaction
+- **Method & Path:** `PUT /api/v1/transactions/{id}`
+- **Auth Required:** Yes (`ROLE_USER`)
+- **Request Body:** Same schema as `POST /api/v1/transactions`.
+- **Response `200 OK`:** Wrapped `ApiResponse<TransactionResponse>`.
+
+### 3.5 Delete Transaction
+- **Method & Path:** `DELETE /api/v1/transactions/{id}`
+- **Auth Required:** Yes (`ROLE_USER`)
+- **Response `204 No Content`**
+
+### 3.6 Transaction Aggregated Summary
+- **Method & Path:** `GET /api/v1/transactions/summary`
+- **Auth Required:** Yes (`ROLE_USER`)
+- **Query Parameters:** `startDate` (ISO-8601), `endDate` (ISO-8601)
+- **Response `200 OK`:**
+```json
+{
+  "success": true,
+  "message": "Transaction summary retrieved successfully",
+  "data": {
+    "totalIncome": 6500.00,
+    "totalExpense": 3420.50,
+    "netSavings": 3079.50,
+    "savingsRatePercent": 47.38,
+    "transactionCount": 42
+  },
+  "timestamp": "2026-11-05T12:00:00Z"
+}
+```
 
 ---
 
 ## 4. Category Management (`/api/v1/categories`)
 
-- `GET /api/v1/categories`: Retrieve all categories (system defaults + user-specific).
-- `POST /api/v1/categories`: Create custom category.
-- `PUT /api/v1/categories/{id}`: Edit category label, color, or icon.
-- `DELETE /api/v1/categories/{id}`: Delete category (validating no active linked records).
+### 4.1 List Categories
+- **Method & Path:** `GET /api/v1/categories`
+- **Auth Required:** Yes (`ROLE_USER`)
+- **Query Parameters:** `type` (optional: `INCOME` | `EXPENSE`)
+- **Response `200 OK`:** Returns system default categories combined with user-created custom categories.
+
+### 4.2 Create Custom Category
+- **Method & Path:** `POST /api/v1/categories`
+- **Auth Required:** Yes (`ROLE_USER`)
+- **Request Body:**
+```json
+{
+  "name": "Side Consulting",
+  "type": "INCOME",
+  "colorHex": "#3B82F6",
+  "iconName": "Briefcase"
+}
+```
+- **Response `201 Created`:** Wrapped `ApiResponse<CategoryResponse>`.
+
+### 4.3 Update Custom Category
+- **Method & Path:** `PUT /api/v1/categories/{id}`
+- **Auth Required:** Yes (`ROLE_USER`)
+- **Rules:** Cannot modify system default categories (`isSystemDefault: true` returns `400 Bad Request`).
+- **Response `200 OK`:** Wrapped `ApiResponse<CategoryResponse>`.
+
+### 4.4 Delete Custom Category
+- **Method & Path:** `DELETE /api/v1/categories/{id}`
+- **Auth Required:** Yes (`ROLE_USER`)
+- **Rules:**
+  - Cannot delete system default categories (`400 Bad Request`).
+  - Cannot delete a category that is actively referenced by one or more transactions (`409 Conflict`).
+- **Response `204 No Content`**
 
 ---
 
 ## 5. Dashboard & Analytics (`/api/v1/dashboard`)
 
 ### 5.1 Financial Summary KPI
-- **Method & Path:** `GET /api/v1/dashboard/summary?year=2026&month=11`
+- **Method & Path:** `GET /api/v1/dashboard/summary`
+- **Auth Required:** Yes (`ROLE_USER`)
+- **Query Parameters:** `year` (int, default current), `month` (1-12, default current)
 - **Response `200 OK`:**
 ```json
 {
-  "period": "2026-11",
-  "currency": "USD",
-  "totalIncome": 6500.00,
-  "totalExpense": 3420.50,
-  "netSavings": 3079.50,
-  "savingsRatePercent": 47.38,
-  "previousMonthExpense": 3810.00,
-  "monthOverMonthExpenseChangePercent": -10.22
+  "success": true,
+  "message": "Dashboard summary retrieved successfully",
+  "data": {
+    "year": 2026,
+    "month": 11,
+    "totalIncome": 6500.00,
+    "totalExpense": 3420.50,
+    "netSavings": 3079.50,
+    "savingsRatePercent": 47.38,
+    "previousMonthExpense": 3810.00,
+    "expenseGrowthRatePercent": -10.22,
+    "transactionCount": 42
+  },
+  "timestamp": "2026-11-05T12:00:00Z"
 }
 ```
 
-### 5.2 Category Breakdown
-- **Method & Path:** `GET /api/v1/dashboard/category-breakdown?year=2026&month=11`
-- **Response `200 OK`:** Breakdown of spend by category with amounts and percentages.
+### 5.2 Category Expense Breakdown
+- **Method & Path:** `GET /api/v1/dashboard/category-breakdown`
+- **Auth Required:** Yes (`ROLE_USER`)
+- **Query Parameters:** `year` (int), `month` (1-12)
+- **Response `200 OK`:**
+```json
+{
+  "success": true,
+  "message": "Category breakdown retrieved successfully",
+  "data": [
+    {
+      "categoryId": "e3b0c442-98fc-1c14-9afbf4c8996fb924",
+      "categoryName": "Groceries",
+      "colorHex": "#10B981",
+      "iconName": "ShoppingCart",
+      "totalAmount": 750.00,
+      "percentage": 21.93,
+      "transactionCount": 12
+    }
+  ],
+  "timestamp": "2026-11-05T12:00:00Z"
+}
+```
 
-### 5.3 Daily Spending Trend
-- **Method & Path:** `GET /api/v1/dashboard/spending-trend?days=30`
-- **Response `200 OK`:** Day-by-day expenditure array for chart rendering.
+### 5.3 Monthly Spending Trend
+- **Method & Path:** `GET /api/v1/dashboard/spending-trend`
+- **Auth Required:** Yes (`ROLE_USER`)
+- **Query Parameters:** `months` (int, default 6)
+- **Response `200 OK`:** Array of monthly income vs. expense aggregations sorted chronologically.
+
+### 5.4 Recent Transactions
+- **Method & Path:** `GET /api/v1/dashboard/recent-transactions`
+- **Auth Required:** Yes (`ROLE_USER`)
+- **Query Parameters:** `limit` (int, default 5, max 20)
+- **Response `200 OK`:** Top latest transactions for quick-glance display on the dashboard ledger.
 
 ---
 
