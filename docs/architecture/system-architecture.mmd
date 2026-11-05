@@ -1,0 +1,71 @@
+flowchart TD
+    %% ==============================================================================
+    %% Expense Tracker - System Architecture Diagram
+    %% ==============================================================================
+
+    subgraph ClientLayer["Client Layer (Browser)"]
+        UI["React 18 Single Page Application<br/>(Vite, Tailwind CSS, Recharts)"]
+        Router["React Router v6<br/>(Protected Routes)"]
+        AxiosClient["Axios HTTP Client<br/>(JWT Interceptors)"]
+        UI --> Router
+        Router --> AxiosClient
+    end
+
+    subgraph BackendLayer["Backend Application Layer (Spring Boot 3 / Java 21)"]
+        SecurityFilter["Spring Security 6<br/>(JwtAuthenticationFilter)"]
+        
+        subgraph Controllers["REST Controllers"]
+            AuthController["AuthController<br/>(/api/v1/auth)"]
+            TxnController["TransactionController<br/>(/api/v1/transactions)"]
+            CatController["CategoryController<br/>(/api/v1/categories)"]
+            BudgetController["BudgetController<br/>(/api/v1/budgets)"]
+            GoalController["GoalController<br/>(/api/v1/goals)"]
+            ReportController["ReportController<br/>(/api/v1/reports)"]
+            AIProxyController["AIIntegrationController<br/>(/api/v1/ai)"]
+        end
+
+        subgraph ServiceLayer["Domain Services"]
+            AuthService["AuthService (BCrypt)"]
+            TxnService["TransactionService"]
+            BudgetService["BudgetService"]
+            ReportService["ReportService"]
+            AIOrchestrator["AIOrchestrationService<br/>(Resilient RestClient)"]
+        end
+
+        subgraph PersistenceLayer["Data Access Layer"]
+            Repositories["Spring Data JPA Repositories<br/>(Hibernate ORM)"]
+            FlywayEngine["Flyway Migration Engine"]
+        end
+
+        SecurityFilter --> Controllers
+        Controllers --> ServiceLayer
+        ServiceLayer --> Repositories
+        FlywayEngine -.-> Repositories
+    end
+
+    subgraph AIServiceLayer["AI & Machine Learning Service (FastAPI / Python 3.11+)"]
+        APIRouter["FastAPI App & Uvicorn Router<br/>(Port 8000)"]
+        
+        subgraph MLModules["ML Inference Pipelines"]
+            Categorizer["Module 1: Categorizer<br/>(TF-IDF + Logistic Regression)"]
+            Forecaster["Module 2: Forecaster<br/>(XGBoost Time-Series)"]
+            OverrunEngine["Module 3: Overrun Engine<br/>(Spend Velocity vs Budget)"]
+            AnomalyDetector["Module 4: Anomaly Detector<br/>(Isolation Forest)"]
+            Recommender["Module 5: Recommendations<br/>(Explainable Heuristics)"]
+        end
+
+        APIRouter --> Categorizer
+        APIRouter --> Forecaster
+        APIRouter --> OverrunEngine
+        APIRouter --> AnomalyDetector
+        APIRouter --> Recommender
+    end
+
+    subgraph DatabaseLayer["Persistence Layer (PostgreSQL 16)"]
+        PostgresDB[("PostgreSQL 16<br/>(Relational Ledger Schema)")]
+    end
+
+    %% Cross-layer connections
+    AxiosClient -- "HTTPS / REST (JSON)" --> SecurityFilter
+    AIOrchestrator -- "Internal HTTP / REST (Timeout 1500ms)" --> APIRouter
+    Repositories -- "JDBC / HikariCP Pool" --> PostgresDB

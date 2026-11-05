@@ -1,0 +1,127 @@
+erDiagram
+    %% ==============================================================================
+    %% Expense Tracker - Entity-Relationship Diagram (PostgreSQL 16)
+    %% ==============================================================================
+
+    USERS {
+        uuid id PK
+        varchar email UK
+        varchar password_hash
+        varchar full_name
+        varchar currency
+        boolean is_active
+        varchar role
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    CATEGORIES {
+        uuid id PK
+        uuid user_id FK
+        varchar name
+        varchar type
+        varchar color_hex
+        varchar icon_name
+        boolean is_system_default
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    TRANSACTIONS {
+        uuid id PK
+        uuid user_id FK
+        uuid category_id FK
+        numeric amount
+        varchar type
+        timestamptz transaction_date
+        varchar description
+        varchar merchant
+        varchar payment_method
+        text notes
+        boolean is_recurring
+        boolean is_anomaly
+        boolean ai_categorized
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    BUDGETS {
+        uuid id PK
+        uuid user_id FK
+        uuid category_id FK
+        numeric amount_limit
+        int period_year
+        int period_month
+        numeric notify_threshold
+        boolean is_active
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    FINANCIAL_GOALS {
+        uuid id PK
+        uuid user_id FK
+        varchar title
+        numeric target_amount
+        numeric current_amount
+        date target_date
+        varchar status
+        text notes
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    RECURRING_TRANSACTIONS {
+        uuid id PK
+        uuid user_id FK
+        uuid category_id FK
+        numeric amount
+        varchar type
+        varchar frequency
+        varchar description
+        varchar merchant
+        date start_date
+        date end_date
+        date next_due_date
+        boolean is_active
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    AI_INSIGHTS {
+        uuid id PK
+        uuid user_id FK
+        uuid transaction_id FK
+        varchar insight_type
+        varchar severity
+        varchar title
+        text message
+        jsonb metadata
+        boolean is_dismissed
+        timestamptz created_at
+    }
+
+    EXPENSE_PREDICTIONS {
+        uuid id PK
+        uuid user_id FK
+        int forecast_horizon_days
+        numeric projected_amount
+        numeric lower_bound
+        numeric upper_bound
+        numeric confidence_score
+        varchar model_version
+        jsonb features_used
+        timestamptz generated_at
+    }
+
+    USERS ||--o{ CATEGORIES : "configures"
+    USERS ||--o{ TRANSACTIONS : "records"
+    CATEGORIES ||--o{ TRANSACTIONS : "classifies"
+    USERS ||--o{ BUDGETS : "allocates"
+    CATEGORIES ||--o{ BUDGETS : "scopes"
+    USERS ||--o{ FINANCIAL_GOALS : "tracks"
+    USERS ||--o{ RECURRING_TRANSACTIONS : "schedules"
+    CATEGORIES ||--o{ RECURRING_TRANSACTIONS : "categorizes"
+    USERS ||--o{ AI_INSIGHTS : "receives"
+    TRANSACTIONS ||--o| AI_INSIGHTS : "triggers"
+    USERS ||--o{ EXPENSE_PREDICTIONS : "receives"
