@@ -77,7 +77,30 @@ backend/src/main/java/com/expensetracker/
 └── category/
     ├── entity/Category.java             # JPA Entity mapped to categories table
     ├── entity/CategoryType.java         # INCOME, EXPENSE
-    └── repository/CategoryRepository.java
+    ├── repository/CategoryRepository.java
+    ├── service/CategoryService.java
+    ├── service/CategoryServiceImpl.java
+    ├── controller/CategoryController.java
+    └── dto/
+        ├── CategoryRequest.java
+        └── CategoryResponse.java
+└── transaction/
+    ├── entity/Transaction.java          # JPA Entity mapped to transactions table
+    ├── entity/PaymentMethod.java        # CASH, CARD, BANK_TRANSFER, UPI, OTHER
+    ├── repository/TransactionRepository.java
+    ├── repository/CategorySpendingProjection.java
+    ├── repository/TransactionSpecification.java # Dynamic multi-criteria JPA Spec
+    ├── service/TransactionService.java
+    ├── service/TransactionServiceImpl.java
+    ├── controller/TransactionController.java
+    ├── controller/DashboardController.java
+    └── dto/
+        ├── CreateTransactionRequest.java
+        ├── UpdateTransactionRequest.java
+        ├── TransactionResponse.java
+        ├── TransactionSummaryResponse.java
+        ├── CategorySpendingResponse.java
+        └── SpendingTrendResponse.java
 ```
 
 ---
@@ -85,13 +108,17 @@ backend/src/main/java/com/expensetracker/
 ## 4. Database Migrations (Flyway)
 
 Database migrations are located in `backend/src/main/resources/db/migration/`:
-- **`V1__initial_schema.sql`**:
+- **`V1__init_schema.sql`**:
   - Creates `users` table with UUID primary key (`DEFAULT gen_random_uuid()`), unique normalized email constraint, BCrypt password hash column, currency format check, and audit timestamps.
   - Creates `categories` table with UUID primary key, foreign key referencing `users(id)`, type check (`INCOME`, `EXPENSE`), and unique constraint per user and type.
   - Creates database indexes on `users(email)` and `categories(user_id, type)`.
-- **`V2__seed_system_categories.sql`**:
+- **`V2__seed_default_categories.sql`**:
   - Seeds 9 default expense categories (Housing & Rent, Groceries, Utilities, Transportation, Dining & Food, Healthcare, Entertainment, Shopping & Retail, Other Expense).
   - Seeds 4 default income categories (Salary, Freelance & Contracts, Investments & Dividends, Other Income).
+- **`V3__create_transactions_table.sql`**:
+  - Creates `transactions` table with `NUMERIC(15,2)` precision, strictly positive amount check (`amount > 0`), valid type and payment method constraints.
+  - Enforces referential integrity: user cascade on delete, category delete restricted if referenced.
+  - Creates compound indexes `(user_id, transaction_date DESC)`, `(user_id, category_id)`, `(user_id, type)`, and `(user_id, created_at DESC)`.
 
 ---
 
@@ -113,7 +140,7 @@ Database migrations are located in `backend/src/main/resources/db/migration/`:
 
 ---
 
-## 6. Implemented API Endpoints (Phase 1)
+## 6. Implemented API Endpoints (Phase 1 & Phase 3)
 
 ### Public Endpoints:
 - `POST /api/v1/auth/register` - Create account, hash password via BCrypt, return JWT tokens.
@@ -123,10 +150,32 @@ Database migrations are located in `backend/src/main/resources/db/migration/`:
 - `GET /swagger-ui.html` - Interactive Swagger API documentation.
 
 ### Authenticated Endpoints (`Authorization: Bearer <token>`):
+#### User & Profile:
 - `GET /api/v1/auth/me` - Retrieve currently authenticated user's profile.
 - `GET /api/v1/users/me` - Retrieve authenticated user's profile.
 - `PUT /api/v1/users/me` - Update full name or default currency.
 - `PUT /api/v1/users/me/password` - Change password with current password verification.
+
+#### Category Management:
+- `GET /api/v1/categories` - List categories (system defaults + user custom, optional `?type=INCOME|EXPENSE`).
+- `GET /api/v1/categories/{id}` - Retrieve category by ID.
+- `POST /api/v1/categories` - Create custom category.
+- `PUT /api/v1/categories/{id}` - Update custom category (locked for system defaults).
+- `DELETE /api/v1/categories/{id}` - Delete custom category (prevents delete if referenced by transactions).
+
+#### Transaction Management:
+- `GET /api/v1/transactions` - Filtered & paginated transactions (`page`, `size`, `startDate`, `endDate`, `type`, `categoryId`, `minAmount`, `maxAmount`, `query`, `sortBy`, `sortDirection`).
+- `GET /api/v1/transactions/{id}` - Get transaction by ID.
+- `POST /api/v1/transactions` - Create transaction (verifies category type match).
+- `PUT /api/v1/transactions/{id}` - Update transaction.
+- `DELETE /api/v1/transactions/{id}` - Delete transaction.
+- `GET /api/v1/transactions/summary` - Aggregate total income, expenses, net savings, and savings rate.
+
+#### Dashboard & Analytics:
+- `GET /api/v1/dashboard/summary` - Live monthly financial summary KPI with month-over-month growth.
+- `GET /api/v1/dashboard/category-breakdown` - Monthly spending breakdown by category with percentages.
+- `GET /api/v1/dashboard/spending-trend` - Chronological monthly income vs. expense trend.
+- `GET /api/v1/dashboard/recent-transactions` - Latest ledger entries for dashboard display.
 
 ---
 
@@ -134,7 +183,7 @@ Database migrations are located in `backend/src/main/resources/db/migration/`:
 
 ### Run Automated Tests:
 ```bash
-# Execute unit and integration tests (32 tests across Auth, User, JWT, Flyway, and Security)
+# Execute unit and integration tests (55 tests across Auth, Category, Transaction, Dashboard, JWT, Flyway, and Security)
 mvn clean test
 ```
 
