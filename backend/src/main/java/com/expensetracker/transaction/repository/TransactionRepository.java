@@ -80,4 +80,21 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID>,
             @Param("userId") UUID userId,
             @Param("startDate") Instant startDate,
             @Param("endDate") Instant endDate);
+
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
+           "WHERE t.user.id = :userId AND t.category.id = :categoryId AND t.type = 'EXPENSE' " +
+           "AND t.transactionDate >= :startDate AND t.transactionDate <= :endDate")
+    BigDecimal sumExpenseByUserIdAndCategoryAndDateRange(
+            @Param("userId") UUID userId,
+            @Param("categoryId") UUID categoryId,
+            @Param("startDate") Instant startDate,
+            @Param("endDate") Instant endDate);
+
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
+           "WHERE t.user.id = :userId AND t.type = 'EXPENSE' " +
+           "AND t.transactionDate >= :startDate AND t.transactionDate <= :endDate")
+    BigDecimal sumExpenseByUserIdAndDateRange(
+            @Param("userId") UUID userId,
+            @Param("startDate") Instant startDate,
+            @Param("endDate") Instant endDate);
 }
