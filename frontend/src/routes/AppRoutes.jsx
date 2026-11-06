@@ -11,6 +11,7 @@ import { BudgetsPage } from '../pages/budgets/BudgetsPage';
 import { ReportsPage } from '../pages/reports/ReportsPage';
 import { InsightsPage } from '../pages/insights/InsightsPage';
 import { GoalsPage } from '../pages/goals/GoalsPage';
+import { RecurringTransactionsPage } from '../pages/recurring/RecurringTransactionsPage';
 import { ProfilePage } from '../pages/profile/ProfilePage';
 import { NotFoundPage } from '../pages/common/NotFoundPage';
 
@@ -33,6 +34,7 @@ export const AppRoutes = () => {
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/insights" element={<InsightsPage />} />
           <Route path="/goals" element={<GoalsPage />} />
+          <Route path="/recurring" element={<RecurringTransactionsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Route>
       </Route>
