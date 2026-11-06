@@ -6,6 +6,9 @@ import { DashboardPage } from '../../pages/dashboard/DashboardPage';
 import { ToastProvider } from '../../context/ToastContext';
 import { dashboardService } from '../../services/dashboardService';
 import { categoryService } from '../../services/categoryService';
+import { budgetService } from '../../services/budgetService';
+import { goalService } from '../../services/goalService';
+import { recurringService } from '../../services/recurringService';
 import * as authHook from '../../hooks/useAuth';
 
 vi.mock('../../hooks/useAuth', () => ({
@@ -27,6 +30,24 @@ vi.mock('../../services/categoryService', () => ({
   },
 }));
 
+vi.mock('../../services/budgetService', () => ({
+  budgetService: {
+    getBudgetOverview: vi.fn(),
+  },
+}));
+
+vi.mock('../../services/goalService', () => ({
+  goalService: {
+    getGoalSummary: vi.fn(),
+  },
+}));
+
+vi.mock('../../services/recurringService', () => ({
+  recurringService: {
+    getUpcomingRecurring: vi.fn(),
+  },
+}));
+
 describe('DashboardPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -41,6 +62,22 @@ describe('DashboardPage', () => {
       { categoryName: 'Groceries', amount: 500 },
     ]);
     dashboardService.getRecentTransactions.mockResolvedValue([]);
+    budgetService.getBudgetOverview.mockResolvedValue({
+      totalBudgeted: 1500,
+      totalSpent: 800,
+      totalRemaining: 700,
+      overallUtilizationPercentage: 53.3,
+      activeBudgetsCount: 2,
+      overBudgetCount: 0,
+    });
+    goalService.getGoalSummary.mockResolvedValue({
+      totalTargetAmount: 5000,
+      totalSavedAmount: 2500,
+      overallProgressPercentage: 50.0,
+      activeGoalsCount: 2,
+      completedGoalsCount: 0,
+    });
+    recurringService.getUpcomingRecurring.mockResolvedValue([]);
   });
 
   const renderDashboard = () => {

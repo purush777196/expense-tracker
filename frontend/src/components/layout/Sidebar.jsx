@@ -7,6 +7,7 @@ import {
   BarChart3,
   Sparkles,
   Target,
+  Repeat,
   User,
   LogOut,
   Wallet,
@@ -22,6 +23,7 @@ const navigationItems = [
   { name: 'Reports', path: '/reports', icon: BarChart3 },
   { name: 'AI Insights', path: '/insights', icon: Sparkles, badge: 'AI' },
   { name: 'Financial Goals', path: '/goals', icon: Target },
+  { name: 'Recurring', path: '/recurring', icon: Repeat },
 ];
 
 export const Sidebar = ({ className }) => {
