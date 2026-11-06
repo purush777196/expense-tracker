@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 
+process.env.VITEST_SKIP_INSTALL_CHECKS = '1';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -10,6 +12,9 @@ const __dirname = dirname(__filename);
 export default defineConfig({
   root: __dirname,
   plugins: [react()],
+  css: {
+    postcss: resolve(__dirname, 'postcss.config.js'),
+  },
   server: {
     port: 5173,
     proxy: {
